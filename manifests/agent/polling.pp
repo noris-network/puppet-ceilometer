@@ -8,6 +8,10 @@
 #   (Optional) Should the service be enabled.
 #   Defaults to true.
 #
+# [*manage_user*]
+#   (Optional)  Whether the user should be managed by Puppet
+#   Defaults to true.
+#
 # [*manage_service*]
 #   (Optional)  Whether the service should be managed by Puppet.
 #   Defaults to true.
@@ -61,20 +65,22 @@ class ceilometer::agent::polling (
   }
 
   if $compute_namespace {
-    if $::ceilometer::params::libvirt_group {
-      User['ceilometer'] {
-        groups => ['nova', $::ceilometer::params::libvirt_group]
+    if($manage_user) {
+      if $::ceilometer::params::libvirt_group {
+        User['ceilometer'] {
+          groups => ['nova', $::ceilometer::params::libvirt_group]
+        }
+        Package <| title == 'libvirt' |> -> User['ceilometer']
+      } else {
+        User['ceilometer'] {
+          groups => ['nova']
+        }
       }
-      Package <| title == 'libvirt' |> -> User['ceilometer']
-    } else {
-      User['ceilometer'] {
-        groups => ['nova']
-      }
+      Package <| title == 'ceilometer-common' |> -> User['ceilometer']
     }
 
     $compute_namespace_name = 'compute'
 
-    Package <| title == 'ceilometer-common' |> -> User['ceilometer']
     Package <| title == 'nova-common' |> -> Package['ceilometer-common']
 
     ceilometer_config {
@@ -90,13 +96,6 @@ class ceilometer::agent::polling (
     $ipmi_namespace_name = ''
   }
 
-  if $manage_service {
-    if $enabled {
-      $service_ensure = 'running'
-    } else {
-      $service_ensure = 'stopped'
-    }
-  }
 
   $namespaces = delete([$central_namespace_name, $compute_namespace_name, $ipmi_namespace_name], '')
   $namespaces_real = inline_template('<%= @namespaces.select { |x| x and x !~ /^undef/ }.compact.join "," %>')
@@ -113,13 +112,21 @@ class ceilometer::agent::polling (
     }
   }
 
-  service { 'ceilometer-polling':
-    ensure     => $service_ensure,
-    name       => $::ceilometer::params::agent_polling_service_name,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
-    tag        => 'ceilometer-service',
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
+
+    service { 'ceilometer-polling':
+      ensure     => $service_ensure,
+      name       => $::ceilometer::params::agent_polling_service_name,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+      tag        => 'ceilometer-service',
+    }
   }
 
   if $coordination_url {
