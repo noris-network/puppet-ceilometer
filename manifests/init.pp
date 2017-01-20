@@ -302,6 +302,7 @@ class ceilometer(
   $rabbit_userid                      = $::os_service_default,
   $rabbit_password                    = $::os_service_default,
   $rabbit_virtual_host                = $::os_service_default,
+  $manage_account                     = true,
 ) {
 
   include ::ceilometer::deps
@@ -337,16 +338,18 @@ ceilometer::rabbit_port, ceilometer::rabbit_userid and ceilometer::rabbit_virtua
 deprecated. Please use ceilometer::default_transport_url instead.")
   }
 
-  group { 'ceilometer':
-    name    => 'ceilometer',
-    require => Anchor['ceilometer::install::end'],
-  }
+  if $manage_account {
+    group { 'ceilometer':
+      name    => 'ceilometer',
+      require => Anchor['ceilometer::install::end'],
+    }
 
-  user { 'ceilometer':
-    name    => 'ceilometer',
-    gid     => 'ceilometer',
-    system  => true,
-    require => Anchor['ceilometer::install::end'],
+    user { 'ceilometer':
+      name    => 'ceilometer',
+      gid     => 'ceilometer',
+      system  => true,
+      require => Anchor['ceilometer::install::end'],
+    }
   }
 
   package { 'ceilometer-common':
