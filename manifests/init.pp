@@ -328,6 +328,7 @@ class ceilometer(
   $rabbit_virtual_host                = $::os_service_default,
   $memcached_servers                  = undef,
   $rpc_backend                        = $::os_service_default,
+  $manage_account                     = true,
 ) {
 
   include ::ceilometer::deps
@@ -374,18 +375,19 @@ please use memcache_servers instead.")
     $memcache_servers_real = $memcache_servers
   }
 
-  group { 'ceilometer':
-    ensure  => present,
-    name    => 'ceilometer',
-    require => Anchor['ceilometer::install::end'],
-  }
 
-  user { 'ceilometer':
-    ensure  => present,
-    name    => 'ceilometer',
-    gid     => 'ceilometer',
-    system  => true,
-    require => Anchor['ceilometer::install::end'],
+  if $manage_account {
+    group { 'ceilometer':
+      name    => 'ceilometer',
+      require => Anchor['ceilometer::install::end'],
+    }
+
+    user { 'ceilometer':
+      name    => 'ceilometer',
+      gid     => 'ceilometer',
+      system  => true,
+      require => Anchor['ceilometer::install::end'],
+    }
   }
 
   package { 'ceilometer-common':

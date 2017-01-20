@@ -111,14 +111,13 @@ class ceilometer::collector (
     } else {
       $service_ensure = 'stopped'
     }
-  }
-
-  service { 'ceilometer-collector':
-    ensure     => $service_ensure,
-    name       => $::ceilometer::params::collector_service_name,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
-    tag        => 'ceilometer-service'
+    service { 'ceilometer-collector':
+      ensure     => $service_ensure,
+      name       => $::ceilometer::params::collector_service_name,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+      tag        => 'ceilometer-service'
+    }
   }
 }
