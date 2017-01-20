@@ -140,35 +140,36 @@ class ceilometer::api (
     } else {
       $service_ensure = 'stopped'
     }
-  }
 
-  Package['ceilometer-common'] -> Service[$service_name]
+    Package['ceilometer-common'] -> Service[$service_name]
 
-  if $service_name == $::ceilometer::params::api_service_name {
-    service { 'ceilometer-api':
-      ensure     => $service_ensure,
-      name       => $::ceilometer::params::api_service_name,
-      enable     => $enabled,
-      hasstatus  => true,
-      hasrestart => true,
-      require    => Class['ceilometer::db'],
-      tag        => 'ceilometer-service',
+    if $service_name == $::ceilometer::params::api_service_name {
+      service { 'ceilometer-api':
+        ensure     => $service_ensure,
+        name       => $::ceilometer::params::api_service_name,
+        enable     => $enabled,
+        hasstatus  => true,
+        hasrestart => true,
+        require    => Class['ceilometer::db'],
+        tag        => 'ceilometer-service',
+      }
+    } elsif $service_name == 'httpd' {
+      include ::apache::params
+      service { 'ceilometer-api':
+        ensure => 'stopped',
+        name   => $::ceilometer::params::api_service_name,
+        enable => false,
+        tag    => 'ceilometer-service',
+      }
+      Class['ceilometer::db'] -> Service[$service_name]
+
+      # we need to make sure ceilometer-api/eventlet is stopped before trying to start apache
+      Service['ceilometer-api'] -> Service[$service_name]
+    } else {
+      fail("Invalid service_name. Either ceilometer/openstack-ceilometer-api for \
+  running as a standalone service, or httpd for being run by a httpd server")
     }
-  } elsif $service_name == 'httpd' {
-    include ::apache::params
-    service { 'ceilometer-api':
-      ensure => 'stopped',
-      name   => $::ceilometer::params::api_service_name,
-      enable => false,
-      tag    => 'ceilometer-service',
-    }
-    Class['ceilometer::db'] -> Service[$service_name]
 
-    # we need to make sure ceilometer-api/eventlet is stopped before trying to start apache
-    Service['ceilometer-api'] -> Service[$service_name]
-  } else {
-    fail("Invalid service_name. Either ceilometer/openstack-ceilometer-api for \
-running as a standalone service, or httpd for being run by a httpd server")
   }
 
   ceilometer_config {

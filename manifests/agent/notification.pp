@@ -100,17 +100,17 @@ class ceilometer::agent::notification (
     } else {
       $service_ensure = 'stopped'
     }
+    Package['ceilometer-common'] -> Service['ceilometer-agent-notification']
+    service { 'ceilometer-agent-notification':
+      ensure     => $service_ensure,
+      name       => $::ceilometer::params::agent_notification_service_name,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+      tag        => 'ceilometer-service'
+    }
   }
 
-  Package['ceilometer-common'] -> Service['ceilometer-agent-notification']
-  service { 'ceilometer-agent-notification':
-    ensure     => $service_ensure,
-    name       => $::ceilometer::params::agent_notification_service_name,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
-    tag        => 'ceilometer-service'
-  }
 
   if ($manage_event_pipeline) {
     validate_array($event_pipeline_publishers)

@@ -286,6 +286,7 @@ class ceilometer(
   $alarm_history_time_to_live         = undef,
   $metering_secret                    = undef,
   $verbose                            = undef,
+  $manage_account                     = true,
 ) {
 
   include ::ceilometer::logging
@@ -312,16 +313,18 @@ class ceilometer(
     warning('alarm_history_time_to_live parameter is deprecated. It should be configured for Aodh.')
   }
 
-  group { 'ceilometer':
-    name    => 'ceilometer',
-    require => Package['ceilometer-common'],
-  }
+  if $manage_account {
+    group { 'ceilometer':
+      name    => 'ceilometer',
+      require => Package['ceilometer-common'],
+    }
 
-  user { 'ceilometer':
-    name    => 'ceilometer',
-    gid     => 'ceilometer',
-    system  => true,
-    require => Package['ceilometer-common'],
+    user { 'ceilometer':
+      name    => 'ceilometer',
+      gid     => 'ceilometer',
+      system  => true,
+      require => Package['ceilometer-common'],
+    }
   }
 
   package { 'ceilometer-common':
