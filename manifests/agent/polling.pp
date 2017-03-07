@@ -65,11 +65,11 @@ class ceilometer::agent::polling (
           groups => ['nova']
         }
       }
+      Package <| title == 'ceilometer-common' |> -> User['ceilometer']
     }
 
     $compute_namespace_name = 'compute'
 
-    Package <| title == 'ceilometer-common' |> -> User['ceilometer']
     Package <| title == 'nova-common' |> -> Package['ceilometer-common']
   }
 
