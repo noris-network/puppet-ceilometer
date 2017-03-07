@@ -8,6 +8,10 @@
 #   (Optional) Should the service be enabled.
 #   Defaults to true.
 #
+# [*manage_user*]
+#   (Optional)  Whether the user should be managed by Puppet
+#   Defaults to true.
+#
 # [*manage_service*]
 #   (Optional)  Whether the service should be managed by Puppet.
 #   Defaults to true.
@@ -34,6 +38,7 @@
 #
 class ceilometer::agent::polling (
   $manage_service    = true,
+  $manage_user       = true,
   $enabled           = true,
   $package_ensure    = 'present',
   $central_namespace = true,
@@ -49,14 +54,16 @@ class ceilometer::agent::polling (
   }
 
   if $compute_namespace {
-    if $::ceilometer::params::libvirt_group {
-      User['ceilometer'] {
-        groups => ['nova', $::ceilometer::params::libvirt_group]
-      }
-      Package <| title == 'libvirt' |> -> User['ceilometer']
-    } else {
-      User['ceilometer'] {
-        groups => ['nova']
+    if($manage_user) {
+      if $::ceilometer::params::libvirt_group {
+        User['ceilometer'] {
+          groups => ['nova', $::ceilometer::params::libvirt_group]
+        }
+        Package <| title == 'libvirt' |> -> User['ceilometer']
+      } else {
+        User['ceilometer'] {
+          groups => ['nova']
+        }
       }
     }
 
