@@ -13,20 +13,11 @@ class { '::ceilometer::db':
 class { '::ceilometer::keystone::auth':
   password => 'a_big_secret',
 }
-class { '::ceilometer::client': }
 class { '::ceilometer::expirer': }
 class { '::ceilometer::agent::polling': }
 class { '::ceilometer::agent::notification': }
 class { '::ceilometer::keystone::authtoken':
   password => 'a_big_secret',
-}
-class { '::ceilometer::api':
-  enabled      => true,
-  service_name => 'httpd',
-}
-include ::apache
-class { '::ceilometer::wsgi::apache':
-  ssl => false,
 }
 
 class { '::ceilometer::collector':

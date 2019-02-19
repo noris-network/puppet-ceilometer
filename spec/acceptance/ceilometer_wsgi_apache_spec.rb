@@ -47,24 +47,16 @@ describe 'ceilometer with mysql' do
         database_connection => 'mysql+pymysql://ceilometer:a_big_secret@127.0.0.1/ceilometer?charset=utf8',
 	sync_db             => false,
       }
+      # NOTE(tobasco): When running the beaker tests we need to exclude the
+      # gnocchi resource types since the acceptance test does not setup gnocchi itself.
       class { '::ceilometer::db::sync':
         extra_params => '--skip-gnocchi-resource-types',
       }
-      class { '::ceilometer::client': }
-      class { '::ceilometer::collector': }
       class { '::ceilometer::expirer': }
       class { '::ceilometer::agent::central': }
       class { '::ceilometer::agent::notification': }
       class { '::ceilometer::keystone::authtoken':
         password => 'a_big_secret',
-      }
-      class { '::ceilometer::api':
-        enabled      => true,
-        service_name => 'httpd',
-      }
-      include ::apache
-      class { '::ceilometer::wsgi::apache':
-        ssl => false,
       }
       class { '::ceilometer::dispatcher::gnocchi': }
       EOS
@@ -73,10 +65,6 @@ describe 'ceilometer with mysql' do
       # Run it twice and test for idempotency
       apply_manifest(pp, :catch_failures => true)
       apply_manifest(pp, :catch_changes => true)
-    end
-
-    describe port(8777) do
-      it { is_expected.to be_listening }
     end
 
     describe cron do

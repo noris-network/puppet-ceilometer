@@ -1,7 +1,7 @@
 Team and repository tags
 ========================
 
-[![Team and repository tags](https://governance.openstack.org/badges/puppet-ceilometer.svg)](http://governance.openstack.org/reference/tags/index.html)
+[![Team and repository tags](https://governance.openstack.org/tc/badges/puppet-ceilometer.svg)](https://governance.openstack.org/tc/reference/tags/index.html)
 
 <!-- Change things from this point on -->
 
@@ -56,7 +56,6 @@ class { '::ceilometer':
 class { '::ceilometer::keystone::auth':
   password => 'a_big_secret',
 }
-class { '::ceilometer::client': }
 class { '::ceilometer::collector': }
 class { '::ceilometer::expirer': }
 class { '::ceilometer::agent::polling': }
@@ -65,9 +64,6 @@ class { '::ceilometer::db': }
 class { '::ceilometer::keystone::authtoken':
   password => 'a_big_secret',
   auth_url => 'http://127.0.0.1:35357/',
-}
-class { '::ceilometer::api':
-  enabled => true,
 }
 ```
 
